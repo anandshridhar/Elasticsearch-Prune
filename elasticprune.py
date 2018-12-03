@@ -13,9 +13,6 @@ log_level = 'error'
 log_file = 'elasticprune.log'
 
 # Functions
-def get_current_date():
-    return date.today()
-
 def process_index_date(index):
     logging.debug('Taken index as  ' + index + ' and extracting date' )
     index_date_str = index.replace(index_glob + '-', '')
@@ -40,8 +37,9 @@ def get_indices(index_glob):
     else:
         dict_data = json.loads(request.data.decode('utf-8'))
         logging.debug('Successfully got the indices data')
-        logging.debug(str([ entry['index'] for entry in dict_data if index_glob in entry['index']]))
-        return [ entry['index'] for entry in dict_data if index_glob in entry['index']]
+        indices_list = [ entry['index'] for entry in dict_data if index_glob in entry['index']]
+        logging.debug(str(indices_list))
+        return indices_list
 
 def delete_index(index):
     http = PoolManager()
@@ -60,7 +58,7 @@ def delete_old_indices():
     for index in get_indices(index_glob):
         logging.debug('Processing for index ' + index)
         try:
-            delta = get_current_date() - process_index_date(index)
+            delta = date.today() - process_index_date(index)
         except TypeError:
             logging.error('Cannot process the dates. Exiting!' )
         if delta.days > days_to_keep:
